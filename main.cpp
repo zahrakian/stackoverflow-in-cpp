@@ -17,17 +17,31 @@ enum UserType{
 };
 
 
-class UserAlreadyExistsException{}; //TODO: Give exceptions a better structure. search google (optional)
+class UserAlreadyExistsException : public exception {
+    public :
+    virtual const char* what () const throw(){
+        return "this user already exists try again...-___-";
+    }
+}; //TODO: Give exceptions a better structure. search google (optional) :done ^^
+class OopsException : public exception {
+    public :
+    virtual const char* what () const throw(){
+        return "oops... username or password is not correct.. try again... -___-";
+    } 
+};
+
 
 class AbstractUser{ // User structure
 public:
     virtual bool authenticate(string username, string password) = 0;
-    virtual bool deleteAccount(vector<AbstractUser*> *users) = 0; //TODO: 1. implement this in User class. (You can't compile code and create instance of User until then). DON'T TOUCH ABSTRACT USER!
+   virtual void deleteAccount(vector<AbstractUser*> *users) {}; //TODO: 1. implement this in User class. (You can't compile code and create instance of User until then). DON'T TOUCH ABSTRACT USER! :done ^^
     string username;
 protected:
     string password;
     UserType type;
 };
+
+
 
 
 class User : public AbstractUser{
@@ -42,20 +56,30 @@ public:
     bool authenticate(string username, string password){
         return this->username == username && this->password == password;
     }
+    
+    
+    void deleteAccount(vector<AbstractUser*> *users) { 
+        for(auto user=users->begin();user !=users->end();user++)
+        {if(username ==(*user)->username){users->erase(user);
+        break;
+        }
+    } 
+        }
 
-    static User* login(vector<AbstractUser*> *users, string username, string password){ //TODO: 2. handle user login errors with exceptions
+    static User* login(vector<AbstractUser*> *users, string username, string password){ //TODO: 2. handle user login errors with exceptions : done ^^
         for(auto user = users->begin(); user != users->end(); user++){
             if((*user)->authenticate(username, password)){
                 return (User*) *user;
             }
         }
-        return nullptr;
+        OopsException e;
+        throw e ;
     }
 
     static void signup(vector<AbstractUser*> *users, string username, string password){
 
         //Check if user with that username exists and throw UserAlreadyExistsException in that case
-        for(auto user = users->begin(); user != users->end(); user++) { //TODO: 3. this doesn't work. fix it!!
+        for(auto user = users->begin(); user != users->end(); user++) { //TODO: 3. this doesn't work. fix it!! :done ^^
             if ((*user)->username == username) {
                 UserAlreadyExistsException ex;
                 throw ex;
@@ -108,12 +132,13 @@ int main(){
                         cin >> username;
                         cout << "Enter Password" << endl;
                         cin >> password;
+                           try{
                         loggedInUser = User::login(&appDatabase.appUsers, username, password);
-                        if (loggedInUser == nullptr) {
-                            cout << "couldn't login with given credentials.";
-                        } else {
                             menuState = MenuState::LOGGED_IN;
+                
                         }
+                        catch(OopsException e)
+                        {cout<<e.what()<<endl;}
                         break;
                     }
                     case '2': {
